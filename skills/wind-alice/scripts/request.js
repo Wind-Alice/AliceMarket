@@ -801,17 +801,197 @@ export function collectDownloadLinks(value) {
   return Array.from(found, ([url, filename]) => ({ url, filename }));
 }
 
-// 进程级累计的下载链接（按 url 去重），最后统一在 main 末尾打印一次。
+// 进程级累计的待下载文件（按 url 去重），最后统一在 main 末尾下载一次。
+// 分两个来源：collectedDownloads = 服务端 PresentFiles 声明（权威）；
+// textScannedDownloads = 正文正则扫出来的（兜底，仅在前者一个组件都没有时启用）。
 const collectedDownloads = new Map(); // url -> filename
+const textScannedDownloads = new Map(); // url -> filename
 
 function accumulateDownloadsFromValues(values) {
   if (!Array.isArray(values) || values.length === 0) return;
   for (const value of values) {
     for (const { url, filename } of collectDownloadLinks(value)) {
-      if (!collectedDownloads.has(url)) collectedDownloads.set(url, filename);
+      if (!textScannedDownloads.has(url)) textScannedDownloads.set(url, filename);
     }
   }
 }
+
+// ============================================================================
+// A2A.PresentFiles：服务端显式声明的附件清单（下载的**首选**来源）
+// ----------------------------------------------------------------------------
+// 此前只靠 collectDownloadLinks 在 agentResult.value 正文里正则扫链接，属于「猜」：
+// 正文没提到的附件抓不到、正文提到但服务端没产出的又会抓错。服务端其实会在 SSE 的
+// artifact 里下发 `componentName: "A2A.PresentFiles"` 组件，把本次要呈现的文件逐个
+// 列出来——那才是权威清单。改成以它为准（与 alice-credit-analysis 发布包一致）。
+//
+// 正文正则扫描保留为**兜底**：仅当整轮 SSE 里一个 PresentFiles 组件都没有时才启用。
+// 参考实现能直接砍掉兜底，是因为它还有 tasks/get 补取 artifacts 这条后路；
+// wind-alice 没有，砍掉就等于服务端不发 PresentFiles 时用户一个文件都拿不到。
+// ============================================================================
+
+/** PresentFiles 解析诊断：用于在下载前说清「服务端到底声明了没有」。 */
+const presentFilesDiagnostic = {
+  componentsFound: 0,
+  filesExtracted: [],
+  rawComponents: [],
+};
+
+/**
+ * 从 presentFiles 属性里递归摘出文件叶子，返回 [{path, name}]。
+ *
+ * 服务端的节点形态并不统一：
+ *   - `type: "file"`：叶子，path/name 任一存在即收；
+ *   - `type: "dir"` 或带 children：目录，往下递归；
+ *   - 无 type 且无 children：按 name 是否带扩展名判定是不是文件。
+ */
+function collectPresentFileLeaves(node, out) {
+  if (node == null) return;
+  if (Array.isArray(node)) {
+    for (const child of node) collectPresentFileLeaves(child, out);
+    return;
+  }
+  if (typeof node !== "object") return;
+
+  const path = typeof node.path === "string" ? node.path : "";
+  const name = typeof node.name === "string" ? node.name : "";
+  const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+
+  if (node.type === "file") {
+    if (path || name) out.push({ path, name });
+    return;
+  }
+  if (node.type === "dir" || hasChildren) {
+    if (hasChildren) {
+      for (const child of node.children) collectPresentFileLeaves(child, out);
+    }
+    return;
+  }
+  // 无 type 也无 children：只有带扩展名的 name 才当文件，避免把普通对象当附件
+  if (name && /\.[A-Za-z0-9]+$/.test(name)) out.push({ path, name });
+}
+
+/**
+ * 在事件 result 里深度优先找出所有 `A2A.PresentFiles` 组件。
+ * 组件的嵌套层级由服务端决定（artifact.parts[].data.components[] 等多种形态都出现过），
+ * 所以不按固定路径取，而是整棵树扫——深度上限 32 防御自引用/超深结构。
+ */
+function findPresentFilesComponents(node, out, depth = 0) {
+  if (node == null || depth > 32) return;
+  if (Array.isArray(node)) {
+    for (const child of node) findPresentFilesComponents(child, out, depth + 1);
+    return;
+  }
+  if (typeof node !== "object") return;
+  if (node.componentName === "A2A.PresentFiles") out.push(node);
+  for (const key of Object.keys(node)) {
+    findPresentFilesComponents(node[key], out, depth + 1);
+  }
+}
+
+/**
+ * 从一批 SSE 事件里解析出服务端声明的待下载文件，返回 [{url, filename}]。
+ *
+ * path 是完整 http(s) URL 就直接用；是 `/project/xxx` 工作区相对路径就用当前
+ * contextId 拼成完整下载 URL。这里**不做扩展名白名单校验**——服务端已经明确
+ * 声明「这些是要呈现给用户的文件」，再拿白名单去筛就会把 .drawio 之类漏掉。
+ */
+export function extractPresentFilesDownloads(events) {
+  if (!Array.isArray(events) || events.length === 0) return [];
+
+  const components = [];
+  for (const ev of events) {
+    const result = ev?.result;
+    if (result != null) findPresentFilesComponents(result, components);
+  }
+  presentFilesDiagnostic.componentsFound += components.length;
+  for (const c of components) {
+    try {
+      presentFilesDiagnostic.rawComponents.push(JSON.stringify(c).slice(0, 4000));
+    } catch {}
+  }
+  if (components.length === 0) return [];
+
+  const leaves = [];
+  for (const c of components) {
+    const presentFiles = c?.properties?.presentFiles;
+    if (presentFiles != null) collectPresentFileLeaves(presentFiles, leaves);
+  }
+  if (leaves.length === 0) return [];
+
+  const out = [];
+  for (const { path, name } of leaves) {
+    let url = null;
+    if (path && /^https?:\/\//i.test(path)) url = path;
+    else if (path) url = buildSessionProjectFileUrl(path);
+    if (!url) continue;
+    out.push({ url, filename: name || deriveFilenameFromUrl(url, "downloaded") });
+  }
+
+  for (const { filename } of out) {
+    if (!presentFilesDiagnostic.filesExtracted.includes(filename)) {
+      presentFilesDiagnostic.filesExtracted.push(filename);
+    }
+  }
+  return out;
+}
+
+/** 把本批事件里 PresentFiles 声明的文件累计进待下载清单（按 url 去重）。 */
+function accumulateDownloadsFromPresentFiles(events) {
+  for (const { url, filename } of extractPresentFilesDownloads(events)) {
+    if (!collectedDownloads.has(url)) collectedDownloads.set(url, filename);
+  }
+}
+
+/**
+ * 说清 PresentFiles 的解析情况——附件没下来时这几行就是排查起点。
+ *
+ * 只在「有话可说」时打，避免纯问答（本来就没附件）的每一次调用都多两行噪音：
+ *   - 服务端一个组件都没发、也没扫到任何附件 -> 静默；
+ *   - 发了组件却没解析出文件叶子 -> 必须报，并 dump 原始结构（这是真异常）。
+ */
+function reportPresentFilesDiagnostic(hasPendingItems) {
+  const { componentsFound, filesExtracted, rawComponents } = presentFilesDiagnostic;
+
+  if (componentsFound === 0) {
+    if (hasPendingItems) {
+      console.error(
+        "[下载] A2A.PresentFiles 诊断：本次 SSE 未发现 PresentFiles 组件（服务端未声明附件）。",
+      );
+    }
+    return;
+  }
+  if (filesExtracted.length > 0) {
+    console.error(
+      `[下载] A2A.PresentFiles 诊断：命中 ${componentsFound} 个组件，列出 ${filesExtracted.length} 个文件：${filesExtracted.join(", ")}`,
+    );
+    return;
+  }
+  console.error(
+    `[下载] A2A.PresentFiles 诊断：命中 ${componentsFound} 个组件，但未解析出文件叶子。原始组件结构 dump（每条最多 4000 字符）：`,
+  );
+  for (const raw of rawComponents.slice(0, 3)) {
+    console.error(`[下载] A2A.PresentFiles raw: ${raw}`);
+  }
+}
+
+/** @internal 单测专用：重置 PresentFiles 解析状态（诊断计数跨用例会累加）。 */
+export function __resetPresentFilesStateForTesting() {
+  presentFilesDiagnostic.componentsFound = 0;
+  presentFilesDiagnostic.filesExtracted.length = 0;
+  presentFilesDiagnostic.rawComponents.length = 0;
+  collectedDownloads.clear();
+  textScannedDownloads.clear();
+}
+
+/** @internal 单测专用：读取当前待下载清单（含兜底判定后的结果由 resolve 决定）。 */
+export function __getCollectedDownloadsForTesting() {
+  return {
+    presentFiles: Array.from(collectedDownloads, ([url, filename]) => ({ url, filename })),
+    textScanned: Array.from(textScannedDownloads, ([url, filename]) => ({ url, filename })),
+    componentsFound: presentFilesDiagnostic.componentsFound,
+  };
+}
+
 
 /**
  * 把单个文件名清洗成跨平台安全的形态：
@@ -973,11 +1153,34 @@ export function resolveDownloadDir(skillDir, { home = homedir() } = {}) {
  *
  * 重复调用幂等：调用即清空累计列表。
  */
-async function downloadCollectedFiles(apiKey) {
-  if (collectedDownloads.size === 0) return;
-
-  const items = Array.from(collectedDownloads, ([url, filename]) => ({ url, filename }));
+/**
+ * 定下本轮到底下载哪些文件。
+ *
+ * PresentFiles 解析出东西就以它为准（服务端权威声明，正文扫描不再参与，免得同一个
+ * 文件被两种写法抓成两条 URL 各下一份）；一个都没解析出来才退回正文扫描的结果——
+ * 包括「服务端根本没发组件」和「发了但结构没认出来」两种情况，后者的原始结构已由
+ * reportPresentFilesDiagnostic dump 到 stderr 供排查。
+ *
+ * 调用即清空两个累计表，重复调用幂等。
+ */
+function resolvePendingDownloads() {
+  const fromPresentFiles = collectedDownloads.size > 0;
+  const source = fromPresentFiles ? collectedDownloads : textScannedDownloads;
+  const items = Array.from(source, ([url, filename]) => ({ url, filename }));
   collectedDownloads.clear();
+  textScannedDownloads.clear();
+  return { items, fromPresentFiles };
+}
+
+async function downloadCollectedFiles(apiKey) {
+  const { items, fromPresentFiles } = resolvePendingDownloads();
+  reportPresentFilesDiagnostic(items.length > 0);
+  if (items.length === 0) return;
+  console.error(
+    fromPresentFiles
+      ? `[下载] 清单来源：服务端 A2A.PresentFiles 声明（${items.length} 个文件）`
+      : `[下载] 清单来源：agentResult 正文链接扫描兜底（${items.length} 个文件）`,
+  );
 
   const { dir: targetDir } = resolveDownloadDir(SKILL_DIR);
 
@@ -1098,6 +1301,9 @@ export function emitParsedEvents(events) {
     process.exitCode = 1;
     return;
   }
+  // 先取服务端 PresentFiles 声明（权威清单），再扫正文留作兜底。
+  // 顺序无所谓，但必须都跑：正文扫描的结果只有在没有任何 PresentFiles 组件时才会用上。
+  accumulateDownloadsFromPresentFiles(events);
   const values = extractAgentResultValues(events);
   printAgentResultValues(values);
   accumulateDownloadsFromValues(values);

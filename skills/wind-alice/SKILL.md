@@ -92,15 +92,28 @@ node scripts/wind-alice.mjs --prompt "<USER_QUESTION>" --skill "<英文 Skill �
 
 ## 文件下载处理
 
-许多 Skill（公司一页纸 / 调研问题清单 / 季报点评 / 市场规模测算 / 可比公司分析 等）的 `agentResult.value` 末尾会附一个可下载文件链接。
+许多 Skill（公司一页纸 / 调研问题清单 / 季报点评 / 市场规模测算 / 可比公司分析 等）会产出可下载的报告 / 数据附件。
 
-CLI 在每次调用结束时会自动扫描 value 中的可下载文件链接，**直接用 `WIND_API_KEY` 作 Bearer Token 下载到 `.agents/download/` 目录**，并把下载结果（已保存路径或失败原因）打到 **stderr**：
+CLI 在每次调用结束时**直接用 `WIND_API_KEY` 作 Bearer Token 把附件下载到 `.agents/download/` 目录**，并把下载结果（已保存路径或失败原因）打到 **stderr**。
+
+**附件清单有两个来源，优先级如下**：
+
+1. **服务端 `A2A.PresentFiles` 声明（权威）**：SSE 的 artifact 里带 `componentName: "A2A.PresentFiles"` 组件时，
+   以它列出的文件为准——服务端明确说了本次要呈现哪些文件，不多不少。
+2. **`agentResult.value` 正文链接扫描（兜底）**：仅当整轮 SSE **一个 PresentFiles 组件都没有**时才启用，
+   靠正则从正文里抓 markdown 链接 / 裸 URL / `/project/xxx.ext` 路径。
+
+CLI 会在下载前把判定过程打到 stderr，附件没下来时看这几行即可定位：
 
 ```text
-=== 检测到 1 个可下载文件，正在下载到：<目标目录> ===
+[下载] A2A.PresentFiles 诊断：命中 1 个组件，列出 2 个文件：报告.md, 财务模型.xlsx
+[下载] 清单来源：服务端 A2A.PresentFiles 声明（2 个文件）
+=== 检测到 2 个可下载文件，正在下载到：<目标目录> ===
 - <文件名>
   已保存：<目标目录>\<文件名>
 ```
+
+若诊断行显示「命中 N 个组件，但未解析出文件叶子」，stderr 会 dump 组件原始结构（每条最多 4000 字符）供排查。
 
 **下载目录解析规则（按优先级）**：
 
