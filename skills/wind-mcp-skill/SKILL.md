@@ -15,29 +15,31 @@ description: 这是万得面向 AI Agent 的专业金融数据调用入口，提
 
 根据金融对象和业务意图定位 `server_type`，再按契约确认工具是否支持所需数据、时间范围、粒度、口径及标的数量。已有信息足够时直接查询；缺少影响结果的必要信息且契约无适用默认值时，再向用户澄清。
 
-| `server_type`    | 首选场景                         | 按需加载                                          |
+| `server_type`    | 研究对象                         | 按需加载                                          |
 | ---------------- | ---------------------------- | --------------------------------------------- |
-| `stock_research` | 股票                           | `references/stock/`                           |
+| `stock_research` | 股票及上市公司                    | `references/stock/`                           |
 | `fund_research`  | 基金、ETF、REITs                 | `references/fund/`                            |
 | `options_data`   | 期权                           | `references/options/`                         |
 | `futures_data`   | 期货                           | `references/futures/futures.md`               |
-| `company_data`   | 企业、风控                        | `references/company/`                         |
+| `company_data`   | 工商注册企业                      | `references/company/`                         |
 | `edb_data`       | 宏观、行业与区域经济                   | `references/economic/economic.md`             |
 | `index_data`     | 指数、板块                        | `references/index/index.md`                   |
 | `bond_data`      | 债券                           | `references/bond/bond.md`                     |
 | `financial_docs` | 公告与财经新闻                      | `references/financial-docs/financial-docs.md` |
-| `analytics_data` | 专项未覆盖的聚合与指标计算                | `references/analytics/analytics.md`           |
-| `general_data`   | 专项未覆盖的通用金融行情、指标、报表、文档与投研参考资料 | `references/general/general.md`               |
+| `analytics_data` | 金融模型与计算器                    | `references/analytics/analytics.md`           |
+| `general_data`   | 各类证券品种的行情、指标、报表、文档的通用数据提取工具 | `references/general/general.md`               |
 
 ### 路由规则
 
-优先使用能满足需求的专项工具；专项未覆盖所需数据、时间粒度、参数口径或批量能力时，检查 `general_data` 的对应契约。对象属于某一专项，不代表该专项覆盖其全部数据。例如，股票历史 K 线进入通用历史行情工具，指数 K 线使用指数专项工具。
+优先根据研究对象选择对应专项工具：股票及上市公司用 stock_research，基金/ETF/REITs 用 fund_research，期权用 options_data，期货用 futures_data，指数/板块用 index_data，债券用 bond_data，宏观、行业与区域经济用 edb_data，工商注册企业用 company_data；当需要从公告、新闻、研报等金融文档中获取摘要、片段、证据或事件解释时，使用 financial_docs。
 
-单个工具支持完整需求时直接调用，包括契约支持的多标的或跨资产批量查询。只有需要不同工具或超过单次限制时才拆分；有依赖的调用先取得并复用前置结果。
+当任务需要获取实时行情、历史行情、K 线、分钟行情、跨资产行情时，使用 general_data 中的行情工具。
 
-交叉场景按所需结果分流：上市公司财务与估值进入 `stock_research`，工商、股权穿透与司法记录进入 `company_data`；行业研究资料与板块盘中综合分析进入 `stock_research`，指数档案、点位序列与预定义指标进入 `index_data`；公告与财经新闻检索优先 `financial_docs`，研报清单、单篇文档全文及精确类型/日期筛选进入 `general_data` 的文档链路。
+当任务需要精准获取某一篇金融文档或附件，例如根据文档ID、标题、发布日期、来源、文档类型、附件名称或附件链接，定位单篇研报、公告、新闻、原文全文或相关附件内容时，使用 general_data 中的文档工具。
 
-`analytics_data` 用于预定义工具无法直接返回的跨标的聚合、自定义指标组合或数据加工，不替代已有行情、筛选、文档或宏观取数工具。基金归因、期权定价等已有专项计算优先使用对应专项工具。
+当专项工具返回结果不满足任务需求，例如缺少所需字段、时间范围、粒度、口径、筛选条件或批量能力时，再使用 general_data 中的对应工具补足。
+
+单个工具能满足完整需求时直接调用；只有需要不同数据来源、不同工具能力，或超过单次查询限制时才拆分调用。有依赖关系的任务，应先取得前置结果并复用。
 
 ### 文件导航
 
