@@ -211,7 +211,6 @@ wind-skills/
 └── skills/                         ← 所有 skill 直接平铺，对齐 npx skills 协议
     ├── wind-find-finance-skill/    ← 入口（无 cli.mjs，纯 SKILL.md + references）
     ├── wind-mcp-skill/             ← 万得 Wind 金融数据访问
-    ├── tushare-finance-skill/      ← Tushare Pro 金融数据
     ├── wind-alice/                 ← Alice 专业金融分析 Agent
     ├── a-share-primary-theme-identification/
     ├── backtest-expert/
