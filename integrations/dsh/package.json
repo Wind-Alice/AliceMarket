@@ -1,0 +1,18 @@
+{
+  "name": "@local/wind-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Wind (万得) MCP servers as a DeepSeek Harness profile bundle",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
