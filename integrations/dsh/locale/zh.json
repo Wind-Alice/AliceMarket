@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Wind 万得金融数据 MCP",
+    "description": "把 Wind 的 7 个 MCP 服务（股票、基金、指数、债券、公告新闻、宏观经济、通用分析）挂成 DSH 原生工具。"
+  }
+}

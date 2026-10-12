@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Wind Market Data MCP",
+    "description": "Exposes the seven Wind MCP servers (stocks, funds, indices, bonds, filings & news, macro, analytics) as native DeepSeek Harness tools."
+  }
+}
