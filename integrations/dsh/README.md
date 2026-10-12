@@ -130,9 +130,30 @@ npm test
 - **凭据**：`Authorization` 必须是 `!!js` 表达式、文件里不得出现明文 Key；表达式在
   「环境变量 / 配置文件 / 都没有」三种情况下的取值语义；
 - **端点一致性**：与 `skills/wind-mcp-skill/scripts/cli.mjs` 的 `SERVERS` 表逐条比对，防止端点漂移；
+- **工具面一致性**：DSH 公开工具名符合 `mcp__<serverName>__<tool>` 约定，且 `tool-manifest.json` 覆盖的域与 bundle 一致；
 - **裁剪**：删到只剩单个域时契约仍然成立；
-- **线上冒烟**（可选）：设置 `WIND_API_KEY` 后，`npm test` 会对 7 个端点各做一次 `initialize` 握手，
-  断言 HTTP 200；未设置时自动跳过。
+- **线上验证**（可选，设置 `WIND_API_KEY` 后启用）：
+  1. 7 个端点各做一次 `initialize` 握手，断言 HTTP 200；
+  2. 对每个端点 `tools/list`，与 `scripts/tool-manifest.json` 逐条比对（当前 35 个工具）；
+  3. `wind_stock` 上真实 `tools/call` 取一次行情（贵州茅台），断言返回非空且含标的代码。
+  未设置 `WIND_API_KEY` 时这 3 条自动跳过，离线契约测试照常全绿。
+
+## 验证状态（实测记录）
+
+在 DeepSeek Harness 桌面版（profile `desktop`）与真实 Wind 账号下实测：
+
+| 项目 | 结果 |
+| --- | --- |
+| `npm test`（有 Key） | 33 passed / 0 failed / 0 skipped |
+| `npm test`（无 Key） | 30 passed / 0 failed / 3 skipped |
+| `initialize` × 7 端点 | 全部 HTTP 200，`serverInfo.name = wind-mcp-streamable-http-stateless` |
+| `tools/list` × 7 端点 | 与 `tool-manifest.json` 完全一致（35 个工具） |
+| 真实取数 | `get_stock_price_indicators(600519.SH)` → 贵州茅台 1283.19 元 / +1.60% |
+| DSH 装载 | `install_bundle` → `application: applied`，7 行 `fiberPhase: active` |
+| DSH 工具注册 | 运行时工具表出现全部 35 个 `mcp__wind_*` 工具 |
+
+> 上表为撰写本 PR 时的实测快照；Wind 侧工具或行情会变，测试以 `tool-manifest.json` 为断言基准。
+
 
 ## 排错
 

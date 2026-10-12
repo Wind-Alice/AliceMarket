@@ -49,6 +49,41 @@ function authHeader(row) {
   return evaluate({}, row.config.headers.Authorization.__jsExpr)
 }
 
+/** 从 SSE 响应体里取出 JSON-RPC 载荷（Wind 是 streamable-http，回复走 text/event-stream）。 */
+function parseSseJson(text) {
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.startsWith('data:')) continue
+    try {
+      return JSON.parse(line.slice(5).trim())
+    } catch {
+      // 继续找下一个 data 行
+    }
+  }
+  throw new Error(`SSE 响应里没有 JSON 载荷：${text.slice(0, 200)}`)
+}
+
+/** 按 MCP streamable-http 发一次 JSON-RPC 请求。 */
+async function mcpCall(row, method, params = {}) {
+  const response = await fetch(row.config.url, {
+    method: 'POST',
+    headers: {
+      Authorization: authHeader(row),
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    signal: AbortSignal.timeout(30_000),
+  })
+  const body = await response.text()
+  assert.equal(response.status, 200, `${row.config.serverName} 的 ${method} 失败：HTTP ${response.status} ${body.slice(0, 200)}`)
+  return parseSseJson(body)
+}
+
+/** tools/call 的 DSH 侧公开名（与 @deepseek-ai/dsh-mcp-client 的约定一致）。 */
+function dshToolName(serverName, rawName) {
+  return `mcp__${serverName}__${rawName}`
+}
+
 /** 临时改写环境变量（含 HOME），跑完恢复。 */
 function withEnv(overrides, fn) {
   const saved = new Map()
@@ -251,29 +286,73 @@ describe('按需裁剪仍然合法', () => {
   })
 })
 
+describe('与 tool-manifest.json 的工具面一致性（离线）', () => {
+  const MANIFEST = join(REPO_ROOT, 'skills', 'wind-mcp-skill', 'scripts', 'tool-manifest.json')
+
+  test('每个域的 DSH 公开工具名都符合 mcp__<serverName>__<tool> 约定', () => {
+    const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'))
+    const urlToType = new Map([...cliServers()].map(([type, url]) => [url, type]))
+    for (const row of rows()) {
+      const serverType = urlToType.get(row.config.url)
+      for (const tool of manifest[serverType]) {
+        const name = dshToolName(row.config.serverName, tool)
+        assert.match(name, /^mcp__[A-Za-z0-9_-]{1,32}__[A-Za-z0-9_.-]+$/, `${name} 不符合 DSH 工具名约定`)
+      }
+    }
+  })
+
+  test('tool-manifest.json 覆盖的域与 bundle 一致', () => {
+    const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'))
+    assert.deepEqual(Object.keys(manifest).sort(), Object.keys(SERVER_NAME_BY_TYPE).sort())
+  })
+})
+
 describe('线上连通性（需要 WIND_API_KEY，未配置时跳过）', () => {
+  const hasKey = Boolean(process.env.WIND_API_KEY)
+
   test('每个端点都能用 Bearer token 完成 initialize 握手', async (t) => {
-    if (!process.env.WIND_API_KEY) {
+    if (!hasKey) {
       t.skip('未设置 WIND_API_KEY，跳过线上冒烟测试')
       return
     }
     for (const row of rows()) {
-      const response = await fetch(row.config.url, {
-        method: 'POST',
-        headers: {
-          Authorization: authHeader(row),
-          'Content-Type': 'application/json',
-          Accept: 'application/json, text/event-stream',
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'initialize',
-          params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'dsh-integration-test', version: '1.0.0' } },
-        }),
-        signal: AbortSignal.timeout(30_000),
+      const result = await mcpCall(row, 'initialize', {
+        protocolVersion: '2025-06-18',
+        capabilities: {},
+        clientInfo: { name: 'dsh-integration-test', version: '1.0.0' },
       })
-      assert.equal(response.status, 200, `${row.config.serverName} 握手失败：HTTP ${response.status}`)
+      assert.ok(result.result.serverInfo.name.length > 0, `${row.config.serverName} 没有返回 serverInfo`)
     }
+  })
+
+  test('tools/list 的真实工具集与 tool-manifest.json 完全一致', async (t) => {
+    if (!hasKey) {
+      t.skip('未设置 WIND_API_KEY，跳过线上工具清单比对')
+      return
+    }
+    const manifest = JSON.parse(readFileSync(join(REPO_ROOT, 'skills', 'wind-mcp-skill', 'scripts', 'tool-manifest.json'), 'utf8'))
+    const urlToType = new Map([...cliServers()].map(([type, url]) => [url, type]))
+    for (const row of rows()) {
+      const serverType = urlToType.get(row.config.url)
+      const result = await mcpCall(row, 'tools/list')
+      const live = result.result.tools.map((tool) => tool.name).sort()
+      assert.deepEqual(live, [...manifest[serverType]].sort(), `${row.config.serverName} 的线上工具集与 tool-manifest.json 不一致`)
+    }
+  })
+
+  test('真实取数：贵州茅台最新价能返回数据（tools/call 端到端）', async (t) => {
+    if (!hasKey) {
+      t.skip('未设置 WIND_API_KEY，跳过线上取数')
+      return
+    }
+    const row = rows().find((item) => item.config.serverName === 'wind_stock')
+    const result = await mcpCall(row, 'tools/call', {
+      name: 'get_stock_price_indicators',
+      arguments: { windcode: '600519.SH', indexes: '中文简称,最新成交价' },
+    })
+    assert.notEqual(result.result?.isError, true, `取数返回错误：${JSON.stringify(result.result).slice(0, 300)}`)
+    const text = (result.result.content ?? []).map((block) => block.text ?? '').join('')
+    assert.ok(text.length > 0, '取数结果为空')
+    assert.match(text, /600519/, `结果里没有出现标的代码：${text.slice(0, 200)}`)
   })
 })
