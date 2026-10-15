@@ -38,7 +38,7 @@ if (isHelp) {
       "  wind-alice list-skills",
       "",
       "Config:",
-      "  优先读取 %USERPROFILE%\\.wind-aifinmarket\\config (dotenv: WIND_API_KEY=...),",
+      "  优先读取 %USERPROFILE%\\.wind-aifinmarket\\config.env 或 config (dotenv: WIND_API_KEY=...),",
       "  再读取 skill 目录 config.json (wind_api_key),",
       "  最后读取 WIND_API_KEY 环境变量",
     ].join("\n"),

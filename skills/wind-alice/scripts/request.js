@@ -20,7 +20,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const DEFAULT_API_URL = "https://mcp.wind.com.cn/skills/alice";
 const SKILL_DIR = dirname(dirname(fileURLToPath(import.meta.url))); // .../wind-alice
-const WIND_AIFINMARKET_PORTAL = "https://aifinmarket.wind.com.cn";
+const WIND_AIFINMARKET_PORTAL = "https://market.windalice.com/#/user/overview";
+const WIND_AIFINMARKET_CREDITS = "https://market.windalice.com/#/user/credits";
 
 // 服务端在 agentResult 中给出的 `/project/xxx` 是 Alice 工作区相对路径，需要拼成
 // 完整下载 URL 才能由 CLI 自动拉取：
@@ -199,6 +200,182 @@ export const KNOWN_SKILLS = [
     descEn:
       "Verify accuracy of financial information from external sources: paste a passage containing financial data, corporate claims, or industry events, and get a structured, point-by-point verification report.",
   },
+  {
+    nameZh: "A股短线策略报告",
+    nameEn: "A-Share Short-Term Strategy Report",
+    descZh:
+      "每日收盘后自动拉取 Wind 涨停股与指数行情，梳理热点概念群与资金轮动方向，输出含收盘综述、涨停板复盘、AI 主线研判的结构化报告。",
+    descEn:
+      "Pulling daily Wind data on limit-up stocks, index closes, and sector moves, maps hot concept clusters, identifies capital themes, and delivers a structured closing recap.",
+  },
+  {
+    nameZh: "AI商品策略师",
+    nameEn: "AI Commodity Strategist",
+    descZh:
+      "覆盖能源、黑色、有色、化工、农产品、贵金属全板块的机构级策略输出，支持盘前/盘中/盘后三段运行。",
+    descEn:
+      "Institutional-grade strategy assistant for commodity futures across energy, ferrous, non-ferrous, chemicals, ags, and precious metals; operates pre-market, intraday, and post-market.",
+  },
+  {
+    nameZh: "资产配置-行业轮动策略",
+    nameEn: "Asset Allocation - Sector Rotation Strategy",
+    descZh:
+      "分析未来 1-6 个月各行业相对强弱与权重倾斜，结合动量、资金面、估值与景气度因子输出超配/中性/低配清单、行业评分与目标权重。",
+    descEn:
+      "Analyzes 1-6m sector relative strength and tilts, combining momentum, flows, valuation, and fundamentals to produce overweight/neutral/underweight lists and targets.",
+  },
+  {
+    nameZh: "资产配置-战略基准组合",
+    nameEn: "Asset Allocation - Strategic Baseline Portfolio",
+    descZh:
+      "结合风险偏好、投资期限与长期市场数据，制定 3-5 年战略资产配置基准组合，输出大类资产权重、区域目标、指数映射与预期风险收益。",
+    descEn:
+      "Builds 3-5y strategic asset allocation baselines from risk profile, horizon, and market data, producing asset weights, regional targets, and expected risk/return.",
+  },
+  {
+    nameZh: "券商金股追踪",
+    nameEn: "Broker Top Picks Tracker",
+    descZh:
+      "汇总全市场券商月度金股推荐，统计金股热度排行、行业分布与重仓推荐，挖掘券商共识主线与预期差标的。",
+    descEn:
+      "Aggregates broker monthly top picks, tracks popularity rankings and sector distribution, surfacing consensus picks and divergence opportunities.",
+  },
+  {
+    nameZh: "商品智研助手",
+    nameEn: "Commodity Research Assistant",
+    descZh:
+      "输入期货品种名称或 Wind Code，快速聚合行情异动、基本面供需、产业链上下游、资金流向与机构观点，生成多维度商品研究报告与图表。",
+    descEn:
+      "Aggregates market moves, S&D fundamentals, supply chain dynamics, capital flows, and broker views by commodity name or Wind code, generating comprehensive commodity research reports.",
+  },
+  {
+    nameZh: "深度研究",
+    nameEn: "Deep Research",
+    descZh:
+      "面向复杂主题或开放性金融研究：结构化多阶段深度研究（需求澄清->边界界定->多维度并行调研->综合交叉验证->研报产出）。",
+    descEn:
+      "Structured multi-stage deep research for complex financial topics: scoping, multi-angle investigation, cross-verification, and comprehensive report synthesis.",
+  },
+  {
+    nameZh: "基金涨跌解读",
+    nameEn: "Fund Performance Attribution Assistant",
+    descZh:
+      "拆解基金或 ETF 一段时间内涨跌背后的持仓贡献、行业影响、事件驱动与宏观因素，支持 Brinson 模型与风格归因，并用图表呈现归因结果。",
+    descEn:
+      "Decomposes fund/ETF performance into holdings attribution, sector impact, events, and macro drivers via Brinson and style attribution with visual charts.",
+  },
+  {
+    nameZh: "期货资金流向监测",
+    nameEn: "Futures Fund Flow Monitor",
+    descZh:
+      "基于品种持仓额变化监测全市场、板块与单品种资金流入流出异动，结合历史沉淀资金分位评估资金异动对价格的驱动效应。",
+    descEn:
+      "Monitors capital inflows and outflows across sectors and individual contracts via open interest change, evaluating price impact against historical positioning.",
+  },
+  {
+    nameZh: "期货主力行为分析",
+    nameEn: "Futures Leading Institution Analysis",
+    descZh:
+      "分析期货公司会员/主力席位多空增减仓、净持仓变动、成交量排名与持仓集中度，追踪主力动向与机构博弈态势。",
+    descEn:
+      "Analyzes top futures brokers' long/short positioning, net shifts, volume rankings, and concentration to track institutional smart money.",
+  },
+  {
+    nameZh: "期货研报观点",
+    nameEn: "Futures Research Opinion",
+    descZh:
+      "聚合国内主流期货机构最新研报观点、Wind 情绪评分与多空观点分布，梳理核心交易逻辑、主要矛盾与风险提示。",
+    descEn:
+      "Aggregates commodity research opinions from major brokers, sentiment scoring, bull/bear distributions, and core investment logic.",
+  },
+  {
+    nameZh: "机构持仓透视",
+    nameEn: "Institutional Holdings Insight",
+    descZh:
+      "追踪公募基金、社保、QFII、保险等顶级机构最新重仓与持股变动，输出新建仓/清仓清单、增减持排序、行业轮动与调仓轨迹报告。",
+    descEn:
+      "Tracks top institutional holdings (mutual funds, social security, QFII, insurers), providing new buys, exits, adds/trims, and portfolio shifts.",
+  },
+  {
+    nameZh: "期货盘中异动归因",
+    nameEn: "Intraday Futures Move Attribution",
+    descZh:
+      "实时核验盘中行情、量仓异动、板块联动、内外盘传导与突发消息，快速解答品种为何拉升、跳水、放量突破或资金出逃。",
+    descEn:
+      "Real-time attribution for intraday commodity moves: price/volume spikes, sector spillover, cross-market transmission, and breaking headlines.",
+  },
+  {
+    nameZh: "金融监管局处罚月报",
+    nameEn: "NFRA Monthly Enforcement Report",
+    descZh:
+      "按指定月份获取国家金融监管局官方处罚信息，生成包含行业处罚概览、违规案由趋势分析与重点金融机构处罚明细清单的结构化月报。",
+    descEn:
+      "Monthly structured reports of National Financial Regulatory Administration (NFRA) enforcement actions, analyzing penalties, violation trends, and institutional cases.",
+  },
+  {
+    nameZh: "有色板块深度透视",
+    nameEn: "Nonferrous Metals Sector Deep Analysis",
+    descZh:
+      "采用通用分析框架+品种插件模式，支持铜、铝、锌、镍、锡、铅六大品种的供需平衡、产业链利润、库存仓单、进出口与宏观定价 11 模块结构化研判。",
+    descEn:
+      "Structured research across copper, aluminum, zinc, nickel, tin, and lead covering supply-demand balance, margins, inventories, trade flows, and pricing drivers.",
+  },
+  {
+    nameZh: "期权定价计算器",
+    nameEn: "Option Pricing Calculator",
+    descZh:
+      "对香草期权、二元期权、障碍期权、亚式期权、触碰期权、鲨鱼鳍、雪球/Autocall等各类期权产品进行理论定价与风险敏感度（希腊字母）计算。",
+    descEn:
+      "Theoretical pricing and Greek calculations for vanilla, binary, barrier, Asian, touch, shark-fin, and autocallable/snowball options.",
+  },
+  {
+    nameZh: "期权波动率洞察",
+    nameEn: "Option Volatility Insights",
+    descZh:
+      "深度诊断期权隐含波动率（IV）、历史波动率对比、期限结构、波动率微笑/偏度（Skew）、PCR 指标与波动率曲面异动。",
+    descEn:
+      "Diagnostics on implied volatility (IV), HV vs IV, term structure, skew, PCR, and volatility surface anomalies for option markets.",
+  },
+  {
+    nameZh: "期权交易策略",
+    nameEn: "Options Trading Strategies",
+    descZh:
+      "融合波动率分析、方向性判断与到期日考量，推荐覆盖单腿、垂直价差、日历价差、跨式、勒式、备兑等期权组合策略方案与损益图分析。",
+    descEn:
+      "Recommends directional and volatility options strategies (spreads, straddles, strangles, covered calls) with scenario and payoff analysis.",
+  },
+  {
+    nameZh: "幻灯片",
+    nameEn: "PPT Generator",
+    descZh:
+      "根据用户指定的金融投研主题或提供的内容大纲，自动生成结构化、专业排版的 PPT 报告（含封面、目录、章节、正文与结论页）。",
+    descEn:
+      "Generates structured, professionally formatted financial presentation slides (PPT) with cover, agenda, content pages, and conclusions from user topics.",
+  },
+  {
+    nameZh: "贵金属板块深度透视",
+    nameEn: "Precious Metals Sector Deep Dive",
+    descZh:
+      "覆盖黄金、白银、铂、钯四大品种的行情判断、走势复盘、驱动归因、资金持仓、库存仓单、价差与金银比、租赁利率与实物金价分析。",
+    descEn:
+      "Precious metals market research for gold, silver, platinum, and palladium covering market trends, attribution, fund positioning, gold-silver ratio, and lease rates.",
+  },
+  {
+    nameZh: "证券业监管政策简报",
+    nameEn: "Securities Regulatory Policy Briefing",
+    descZh:
+      "按指定时间范围获取证监会及沪深北交易所等发布的证券行业监管政策法规，输出包含政策核心要点摘要与政策清单索引的结构化简报。",
+    descEn:
+      "Structured briefings on regulatory policies and rules issued by the CSRC and stock exchanges, covering summaries, key impacts, and reference lists.",
+  },
+  {
+    nameZh: "股票交易策略",
+    nameEn: "Stock Trading Strategy",
+    descZh:
+      "生成覆盖持仓盈亏、基本面与估值、技术量化指标、行业生态、消息事件、交易执行策略、风险评估与结论八大维度的结构化个股交易策略报告。",
+    descEn:
+      "Structured stock trading strategy reports covering position P&L, fundamentals, valuation, technical indicators, sector ecosystem, catalysts, and execution risk.",
+  },
 ];
 
 function normalizeSkillName(s) {
@@ -213,10 +390,38 @@ function normalizeSkillName(s) {
  * 常见口语/误称 → 标准 nameEn。仅收录与某一 KNOWN_SKILLS 项一一对应、
  * 且用户极易把「产出物名称」（如信用报告）当成 Skill 名的别名。
  */
-const SKILL_ALIAS_ENTRIES = [
+export const SKILL_ALIAS_ENTRIES = [
+  {
+    nameEn: "Inflation Bond Strategy",
+    aliases: ["通胀配债", "债券轮动"],
+  },
+  {
+    nameEn: "Macro Data Interpretation",
+    aliases: ["宏观解读", "经济数据解读"],
+  },
+  {
+    nameEn: "Thematic Stock Screening",
+    aliases: ["主题选股", "概念选股", "赛道选股"],
+  },
+  {
+    nameEn: "Bond Rate Outlook",
+    aliases: ["利率走势", "利率研判", "债券走势"],
+  },
   {
     nameEn: "Credit Analysis",
     aliases: ["信用报告", "信用分析报告", "credit report"],
+  },
+  {
+    nameEn: "Fund Compare",
+    aliases: ["基金对比", "基金对比分析报告"],
+  },
+  {
+    nameEn: "Fund Screening & Investment Advisory",
+    aliases: ["基金筛选", "基金建议", "选基金"],
+  },
+  {
+    nameEn: "Investment Idea Generation",
+    aliases: ["标的创意", "选股创意", "标的筛选"],
   },
   {
     nameEn: "Company One-Page Investment Memo",
@@ -231,8 +436,104 @@ const SKILL_ALIAS_ENTRIES = [
     aliases: ["季报点评", "财报点评", "earnings review"],
   },
   {
+    nameEn: "Market Sizing & Strategic Modeling",
+    aliases: ["市场规模", "市场空间测算", "tam测算"],
+  },
+  {
     nameEn: "Comps Analysis",
-    aliases: ["可比分析", "comps"],
+    aliases: ["可比分析", "comps", "peer analysis"],
+  },
+  {
+    nameEn: "Fact Check",
+    aliases: ["事实核查", "假消息核验", "fact check"],
+  },
+  {
+    nameEn: "A-Share Short-Term Strategy Report",
+    aliases: ["A股短线", "短线策略", "短线策略报告", "a share short term"],
+  },
+  {
+    nameEn: "AI Commodity Strategist",
+    aliases: ["商品策略师", "期货策略师", "期货盘前策略"],
+  },
+  {
+    nameEn: "Asset Allocation - Sector Rotation Strategy",
+    aliases: ["行业轮动", "行业轮动策略", "sector rotation"],
+  },
+  {
+    nameEn: "Asset Allocation - Strategic Baseline Portfolio",
+    aliases: ["战略基准组合", "战略资产配置", "saa", "strategic baseline"],
+  },
+  {
+    nameEn: "Broker Top Picks Tracker",
+    aliases: ["券商金股", "金股追踪", "金股", "top picks"],
+  },
+  {
+    nameEn: "Commodity Research Assistant",
+    aliases: ["商品智研", "商品研报", "期货研报助手", "commodity research"],
+  },
+  {
+    nameEn: "Deep Research",
+    aliases: ["深度调研", "深度研究", "deep research"],
+  },
+  {
+    nameEn: "Fund Performance Attribution Assistant",
+    aliases: ["基金涨跌", "基金业绩归因", "基金归因", "业绩归因", "performance attribution"],
+  },
+  {
+    nameEn: "Futures Fund Flow Monitor",
+    aliases: ["期货资金流", "期货资金流向", "资金流向监测", "fund flow"],
+  },
+  {
+    nameEn: "Futures Leading Institution Analysis",
+    aliases: ["期货主力", "主力行为分析", "期货席位", "主力席位", "leading institution"],
+  },
+  {
+    nameEn: "Futures Research Opinion",
+    aliases: ["期货研报", "期货观点", "研报观点", "futures research"],
+  },
+  {
+    nameEn: "Institutional Holdings Insight",
+    aliases: ["机构持仓", "机构买卖", "主力持仓", "机构重仓", "13f"],
+  },
+  {
+    nameEn: "Intraday Futures Move Attribution",
+    aliases: ["期货盘中异动", "盘中异动", "期货异动归因", "intraday move"],
+  },
+  {
+    nameEn: "NFRA Monthly Enforcement Report",
+    aliases: ["金融监管处罚", "处罚月报", "金监局处罚", "金融监管局处罚", "nfra report"],
+  },
+  {
+    nameEn: "Option Pricing Calculator",
+    aliases: ["期权定价", "期权计算器", "雪球定价", "option pricing"],
+  },
+  {
+    nameEn: "Option Volatility Insights",
+    aliases: ["期权波动率", "波动率洞察", "波动率分析", "volatility insights"],
+  },
+  {
+    nameEn: "Options Trading Strategies",
+    aliases: ["期权交易策略", "期权策略", "期权组合", "options strategies"],
+  },
+  {
+    nameEn: "PPT Generator",
+    aliases: ["生成ppt", "制作ppt", "ppt生成器", "生成演示文稿", "ppt", "slides"],
+  },
+  {
+    nameEn: "Securities Regulatory Policy Briefing",
+    aliases: ["证券监管简报", "监管政策简报", "证券监管政策", "证券业监管政策", "regulatory policy"],
+  },
+  {
+    nameEn: "Nonferrous Metals Sector Deep Analysis",
+    aliases: ["有色金属分析", "有色金属", "有色金属行业深度分析", "有色板块透视", "有色金属深度透视"],
+  },
+  {
+    nameEn: "Precious Metals Sector Deep Dive",
+    aliases: ["贵金属分析", "贵金属", "黄金白银", "贵金属行业深度剖析", "贵金属板块透视", "贵金属深度透视"],
+  },
+  {
+    nameEn: "Stock Trading Strategy",
+    aliases: ["股票交易策略分析", "股票策略", "个股交易策略", "持仓策略", "股票买卖策略"],
   },
 ];
 
@@ -353,13 +654,16 @@ function die(code, message, { extraHint } = {}) {
 
 function getApiKey() {
   // 全局 Key 存储位置（与其它 wind 技能可共用）
+  const globalConfigEnv = join(homedir(), ".wind-aifinmarket", "config.env");
   const globalConfig = join(homedir(), ".wind-aifinmarket", "config");
-  if (existsSync(globalConfig)) {
-    try {
-      const env = parseDotenv(readFileSync(globalConfig, "utf8"));
-      const key = env.WIND_API_KEY?.trim();
-      if (key) return key;
-    } catch {}
+  for (const cfgPath of [globalConfigEnv, globalConfig]) {
+    if (existsSync(cfgPath)) {
+      try {
+        const env = parseDotenv(readFileSync(cfgPath, "utf8"));
+        const key = env.WIND_API_KEY?.trim();
+        if (key) return key;
+      } catch {}
+    }
   }
 
   const localConfig = join(SKILL_DIR, "config.json");
@@ -378,14 +682,15 @@ function getApiKey() {
   die("KEY_MISSING", "WIND_API_KEY 未配置", {
     extraHint:
       `CLI 已完整检查：用户全局配置 > Skill 本地配置 > WIND_API_KEY 环境变量；不要再手动检查部分来源。\n` +
-      `① 获取 Key：访问 ${WIND_AIFINMARKET_PORTAL}（未登录通常会跳转登录页）。\n` +
+      `① 获取 Key：访问 ${WIND_AIFINMARKET_PORTAL}（或 https://aifinmarket.wind.com.cn/#/user/overview）（未登录通常会跳转登录页）。\n` +
       `② 选择 Key 存放位置：\n` +
-      `   A. 全局共享【推荐 — 所有 wind skill 共用】：%USERPROFILE%\\.wind-aifinmarket\\config\n` +
+      `   A. 全局共享【推荐 — 所有 wind skill 共用】：%USERPROFILE%\\.wind-aifinmarket\\config.env（或 config）\n` +
       `      内容：WIND_API_KEY=<KEY>\n` +
       `   B. 仅当前 skill：${join(SKILL_DIR, "config.json")}\n` +
       `      内容：{"wind_api_key":"<KEY>"}\n` +
       `   C. 临时会话：在终端 set / $env:WIND_API_KEY=<KEY>\n` +
-      `③ 重试原命令`,
+      `③ 积分充值：${WIND_AIFINMARKET_CREDITS}\n` +
+      `④ 重试原命令`,
   });
 }
 
@@ -503,7 +808,8 @@ function usage() {
     "  WIND_API_KEY                可选；配置文件均未提供时读取",
     "",
     "Config (按优先级):",
-    `  ${join(homedir(), ".wind-aifinmarket", "config")}  (dotenv: WIND_API_KEY=...)`,
+    `  ${join(homedir(), ".wind-aifinmarket", "config.env")} (dotenv: WIND_API_KEY=...)`,
+    `  ${join(homedir(), ".wind-aifinmarket", "config")}     (dotenv: 历史兼容)`,
     `  ${join(SKILL_DIR, "config.json")}   (JSON: {"wind_api_key":"..."})`,
     "  WIND_API_KEY 环境变量",
   ].join("\n");
@@ -566,6 +872,85 @@ export function extractAgentResultValues(events) {
       return value === undefined ? [] : [value];
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// 服务端拒绝原因的归类
+// ---------------------------------------------------------------------------
+// 旧行为：命中 result.isError 只打一行 `request failed (result.isError): <原文>`
+// 然后 exitCode = 1 收工。对「积分不足」这种**唯一出路是充值、重试一万次也没用**的
+// 拒绝，宿主 Agent 只拿到一句光秃秃的原文，既没有充值入口，也分不出这是
+// 「要用户去充值」还是「CLI 自己挂了」，于是常给出"稍后重试"这种完全无效的建议。
+//
+// 这里按文案归类，给出各自该做的动作和可区分的退出码。
+// points 必须排在 quota 之前：quota 的 /额度耗尽/ 较宽泛，会把积分问题误判成
+// 「明日再来」，而积分不足等再久也没用。
+
+/** 受阻类拒绝的退出码：临时性失败、非 CLI 故障，宿主 Agent 应停止重试。 */
+const EXIT_SERVER_BLOCKED = 75;
+
+const RESULT_ERROR_CLASSIFIERS = [
+  {
+    kind: "concurrency",
+    patterns: [
+      /最大同步执行任务/,
+      /同步执行任务数目/,
+      /并发.*(限制|上限)/,
+      /同时.*执行.*上限/,
+      /请等待其他任务执行完成/,
+      /Maximum concurrent tasks limit/i,
+    ],
+  },
+  {
+    // 注意现场原文是「账户积分**余额**不足」——中间夹了「余额」，/积分不足/ 这条
+    // 字面相邻的正则匹配不到，必须留着 /积分余额.*不足/ 和 /请.*充值/。
+    kind: "points",
+    patterns: [
+      /积分不足/,
+      /积分已用完/,
+      /积分.*用尽/,
+      /积分.*耗尽/,
+      /积分余额.*不足/,
+      /余额不足/,
+      /请.*充值/,
+      /Points not enough/i,
+      /insufficient\s+points/i,
+      /points?\s*(?:not\s*enough|exhausted|insufficient)/i,
+    ],
+  },
+  {
+    kind: "quota",
+    patterns: [/体验期.*限额/, /超出体验期/, /额度耗尽/, /明日再来/, /当日.*额度/],
+  },
+  {
+    kind: "busy",
+    patterns: [/服务繁忙/, /系统繁忙/, /请稍后重试/],
+  },
+];
+
+/**
+ * 把服务端拒绝文案归类。
+ * @returns {{kind: string, exitCode: number}} 认不出的归 generic（退出码 1，原文照打）
+ */
+export function classifyResultError(text) {
+  const s = String(text ?? "");
+  for (const { kind, patterns } of RESULT_ERROR_CLASSIFIERS) {
+    if (patterns.some((re) => re.test(s))) {
+      return { kind, exitCode: EXIT_SERVER_BLOCKED };
+    }
+  }
+  return { kind: "generic", exitCode: 1 };
+}
+
+/**
+ * 事件是否是 `result.isError` 形态的服务端拒绝。
+ *
+ * 和 extractResultErrorText 分开判定：那个函数在「isError 为 true 但一段可读文案
+ * 都没有」时返回 null，光靠它会让这种响应重新变成静默成功退出——正是本修复要堵的洞。
+ */
+export function isResultError(event) {
+  const result = event?.result;
+  return !!result && typeof result === "object" && result.isError === true;
 }
 
 /**
@@ -1297,8 +1682,10 @@ export function emitParsedEvents(events) {
   logWindTrialQuotaIfPresent(events);
   refreshSessionContextIdFromEvents(events);
   printEvents(events);
-  if (printResultErrors(events)) {
-    process.exitCode = 1;
+  const resultErrorExit = printResultErrors(events);
+  if (resultErrorExit) {
+    // 积分不足等受阻类用 75，普通失败仍是 1；已被置过非 0 码时不覆盖（先写者为准）
+    if (!process.exitCode) process.exitCode = resultErrorExit;
     return;
   }
   // 先取服务端 PresentFiles 声明（权威清单），再扫正文留作兜底。
@@ -1316,16 +1703,53 @@ export function emitParsedEvents(events) {
  * 旧版只认 `error` 字段，会把这些错误当正常流静默丢弃。
  */
 function printResultErrors(events) {
-  if (!Array.isArray(events) || events.length === 0) return false;
-  let hit = false;
+  if (!Array.isArray(events) || events.length === 0) return 0;
+  let exitCode = 0;
   for (const ev of events) {
-    const text = extractResultErrorText(ev);
-    if (text) {
-      console.error(`request failed (result.isError): ${text}`);
-      hit = true;
-    }
+    // 用 isResultError 判定、而不是「extract 出文本才算命中」：
+    // isError 为 true 但没有任何可读文案时也必须报错，否则又退回静默成功退出。
+    if (!isResultError(ev)) continue;
+    const text =
+      extractResultErrorText(ev) ?? "服务端返回 isError=true，但未给出可读文案。";
+    const { kind, exitCode: code } = classifyResultError(text);
+
+    console.error(`request failed (result.isError): ${text}`);
+    emitResultErrorGuidance(kind, text);
+    // 多条拒绝同时出现时取更"硬"的那个码：受阻（75）优先于普通失败（1）
+    exitCode = Math.max(exitCode, code);
   }
-  return hit;
+  return exitCode;
+}
+
+/**
+ * 按拒绝类型给宿主 Agent 可执行的指引。
+ * 机器可读标记 `ALICE_BLOCKED_REASON=<kind>` 便于上层判定，不用去正则匹配中文。
+ */
+function emitResultErrorGuidance(kind, text) {
+  if (kind === "generic") return;
+
+  console.error(`ALICE_BLOCKED_REASON=${kind}`);
+  if (kind === "points") {
+    console.error("[严重] 账户 Alice 积分不足，本次调用未能发起（不是网络或操作出错）。");
+    console.error(`[严重] 充值入口：${WIND_AIFINMARKET_CREDITS}`);
+    console.error("[严重] **充值前重试无效**：不要立即重试、不要换 prompt、不要换 --skill。");
+    console.error(
+      "[严重] 转告用户（可近似原样使用）：「很抱歉，这次没能跑起来——您的 Alice 积分已用完。" +
+        `烦请前往 ${WIND_AIFINMARKET_CREDITS} 充值，充值后把刚才的问题再发一遍，我立刻为您重新生成。」`,
+    );
+  } else if (kind === "quota") {
+    console.error("[严重] 账户额度 / 体验期限额已用尽。");
+    console.error("[严重] 不要立即重试或换 prompt；请稍后或次日再试，或更换 API Key。");
+  } else if (kind === "concurrency") {
+    console.error("[严重] 当前账号并发任务数已达上限，本次未发起。");
+    console.error(
+      "[严重] 不要立即重试、不要换 prompt；等该账号下已在执行的任务跑完后，用相同 prompt 重试。",
+    );
+  } else if (kind === "busy") {
+    console.error("[严重] 服务端繁忙，暂不接受新任务。");
+    console.error("[严重] 不要连续重试；等几分钟后用相同 prompt 再试。");
+  }
+  console.error(`[严重] 退出码=${EXIT_SERVER_BLOCKED}（临时性失败，非 CLI 故障）。`);
 }
 
 /** 非流式路径包装：命中体验配额时返回 true，让调用方提前 return。 */
@@ -1364,14 +1788,15 @@ function dieKeyMissing() {
   die("KEY_MISSING", "WIND_API_KEY 未配置或已失效", {
     extraHint:
       `CLI 已完整检查：用户全局配置 > Skill 本地配置 > WIND_API_KEY 环境变量；不要再手动检查部分来源。\n` +
-      `① 获取 Key：访问 ${WIND_AIFINMARKET_PORTAL}（未登录通常会跳转登录页）。\n` +
+      `① 获取 Key：访问 ${WIND_AIFINMARKET_PORTAL}（或 https://aifinmarket.wind.com.cn/#/user/overview）（未登录通常会跳转登录页）。\n` +
       `② 选择 Key 存放位置：\n` +
-      `   A. 全局共享【推荐 — 所有 wind skill 共用】：%USERPROFILE%\\.wind-aifinmarket\\config\n` +
+      `   A. 全局共享【推荐 — 所有 wind skill 共用】：%USERPROFILE%\\.wind-aifinmarket\\config.env（或 config）\n` +
       `      内容：WIND_API_KEY=<KEY>\n` +
       `   B. 仅当前 skill：${join(SKILL_DIR, "config.json")}\n` +
       `      内容：{"wind_api_key":"<KEY>"}\n` +
       `   C. 临时会话：在终端 set / $env:WIND_API_KEY=<KEY>\n` +
-      `③ 重试原命令`,
+      `③ 积分充值：${WIND_AIFINMARKET_CREDITS}\n` +
+      `④ 重试原命令`,
   });
 }
 

@@ -26,22 +26,44 @@ description: 平台 skill 清单本地副本。由 npx skills update -g -y 随 w
 
 > 这些能力由 `wind-alice` 统一承载。用户点名中文名、英文名或提出高度匹配的问题时,推荐安装 / 调用 `wind-alice`,并把对应子 Skill 名传给 Alice。
 
-| 中文名                 | 英文 Skill 名                            | 适合问题                                           |
-| ---------------------- | ---------------------------------------- | -------------------------------------------------- |
-| 通胀情景债券轮动策略   | `Inflation Bond Strategy`                | CPI/PPI 拐点驱动的债券、货基、久期轮动策略与回测   |
-| 宏观数据解读           | `Macro Data Interpretation`              | CPI、PPI、PMI、GDP、社融等宏观指标的研究周报式解读 |
-| 按主题选股             | `Thematic Stock Screening`               | 拆解市场主线、验证主题逻辑、筛选真实受益标的       |
-| 债券利率走势研判       | `Bond Rate Outlook`                      | 从交易、策略、配置视角研判债券利率走势             |
-| 信用分析               | `Credit Analysis`                        | 主体信用、财务现金流、评级对标、违约概率分析       |
-| 基金对比分析           | `Fund Compare`                           | 多只基金业绩、风险、持仓、管理能力对比             |
-| 基金筛选与投资建议     | `Fund Screening & Investment Advisory`   | 多维筛选基金并给出投顾式配置建议                   |
-| 投资标的创意与筛选     | `Investment Idea Generation`             | 基于因子和主题扫描生成投资标的创意                 |
-| 公司一页纸             | `Company One-Page Investment Memo`       | 上市公司一页纸投资报告                             |
-| 上市公司调研问题清单   | `Stock DD List`                          | 买方视角调研备忘录、深度议题和管理层提问           |
-| 全球上市公司季报点评   | `Global Share Quarterly Earnings Review` | 全球上市公司财报点评、beat/miss 与核心变化         |
-| 市场规模测算与战略建模 | `Market Sizing & Strategic Modeling`     | Top-down / Bottom-up 市场规模测算与情景敏感性      |
-| 可比公司分析           | `fsi-comps-analysis`                     | 机构级可比公司分析,含 Excel 和文字报告             |
-| 事实核验               | `Fact Check`                             | 逐点核查金融数据、声明、事件和文本事实             |
+| 中文名 | 英文 Skill 名 | 适合问题 |
+| ------ | ------------- | -------- |
+| A股短线策略报告 | `A-Share Short-Term Strategy Report` | 收盘后复盘涨停、资金轮动与热点概念,输出短线主线研判 |
+| AI商品策略师 | `AI Commodity Strategist` | 商品期货全板块盘前/盘中/盘后的机构级策略输出 |
+| 资产配置-行业轮动策略 | `Asset Allocation - Sector Rotation Strategy` | 未来 1-6 个月行业超配/中性/低配清单与行业评分 |
+| 资产配置-战略基准组合 | `Asset Allocation - Strategic Baseline Portfolio` | 3-5 年战略资产配置基准、大类权重与预期风险收益 |
+| 债券利率走势研判 | `Bond Rate Outlook` | 从交易、策略、配置视角研判债券利率走势 |
+| 券商金股追踪 | `Broker Top Picks Tracker` | 各券商月度金股汇总、推荐热度排名与行业分布 |
+| 商品智研助手 | `Commodity Research Assistant` | 单个期货品种的价格、基差、库存、供需、资金全景日报 |
+| 公司一页纸 | `Company One-Page Investment Memo` | 上市公司一页纸投资报告 |
+| 可比公司分析 | `Comps Analysis` | 机构级可比公司分析,含 Excel 和文字报告 |
+| 信用分析 | `Credit Analysis` | 主体信用、财务现金流、评级对标、违约概率分析 |
+| 深度研究 | `Deep Research` | 任意主题的多阶段深度研究与综合研究报告 |
+| 事实核验 | `Fact Check` | 逐点核查金融数据、声明、事件和文本事实 |
+| 基金对比分析 | `Fund Compare` | 多只基金业绩、风险、持仓、管理能力对比 |
+| 基金涨跌解读 | `Fund Performance Attribution Assistant` | 基金或 ETF 区间涨跌的持仓、行业、事件与宏观归因 |
+| 基金筛选与投资建议 | `Fund Screening & Investment Advisory` | 多维筛选基金并给出投顾式配置建议 |
+| 期货资金流向监测 | `Futures Fund Flow Monitor` | 商品期货资金流入流出排名与 T+1/T+5 价格表现 |
+| 期货主力行为分析 | `Futures Leading Institution Analysis` | 期货会员席位多空增减仓、净持仓与估算盈亏 |
+| 期货研报观点 | `Futures Research Opinion` | 商品期货机构研报多空观点分布与 Wind 情绪评分 |
+| 全球上市公司季报点评 | `Global Share Quarterly Earnings Review` | 全球上市公司财报点评、beat/miss 与核心变化 |
+| 通胀情景债券轮动策略 | `Inflation Bond Strategy` | CPI/PPI 拐点驱动的债券、货基、久期轮动策略与回测 |
+| 机构持仓透视 | `Institutional Holdings Insight` | 顶级机构新建仓/清仓、增减持排序与调仓轨迹 |
+| 期货盘中异动归因 | `Intraday Futures Move Attribution` | 某品种为何拉升/跳水/放量,或全市场异动扫描 |
+| 投资标的创意与筛选 | `Investment Idea Generation` | 基于因子和主题扫描生成投资标的创意 |
+| 宏观数据解读 | `Macro Data Interpretation` | CPI、PPI、PMI、GDP、社融等宏观指标的研究周报式解读 |
+| 市场规模测算与战略建模 | `Market Sizing & Strategic Modeling` | Top-down / Bottom-up 市场规模测算与情景敏感性 |
+| 金融监管局处罚月报 | `NFRA Monthly Enforcement Report` | 银行/保险/信托行政处罚的月度汇总、趋势与明细 |
+| 有色板块深度透视 | `Nonferrous Metals Sector Deep Analysis` | 铜铝锌镍锡铅六大品种的供需平衡、产业链利润、库存与宏观定价研判 |
+| 期权定价计算器 | `Option Pricing Calculator` | 香草到雪球各类期权的理论价格(NPV)与希腊字母 |
+| 期权波动率洞察 | `Option Volatility Insights` | 期权 IV 估值、期限结构、Skew、PCR 与波动率曲面 |
+| 期权交易策略 | `Options Trading Strategies` | 个股期权波动率信号、异动打分与五段式交易方案 |
+| 幻灯片 | `PPT Generator` | 按主题与结构化内容生成专业 PPT 报告 |
+| 贵金属板块深度透视 | `Precious Metals Sector Deep Dive` | 金银铂钯四大品种的行情复盘、金银比、资金与租赁利率分析 |
+| 证券业监管政策简报 | `Securities Regulatory Policy Briefing` | 指定区间证券业监管政策详情、清单与机构分布 |
+| 上市公司调研问题清单 | `Stock DD List` | 买方视角调研备忘录、深度议题和管理层提问 |
+| 股票交易策略 | `Stock Trading Strategy` | 覆盖持仓盈亏、基本面估值、技术量化、行业生态与执行风控的个股策略 |
+| 按主题选股 | `Thematic Stock Screening` | 拆解市场主线、验证主题逻辑、筛选真实受益标的 |
 
 ---
 
