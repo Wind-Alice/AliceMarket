@@ -1,0 +1,31 @@
+name: DSH integration tests
+
+# 只在本目录变化时运行；线上用例需要 WIND_API_KEY，未配置 secret 时自动跳过。
+on:
+  push:
+    paths:
+      - 'integrations/dsh/**'
+      - '.github/workflows/dsh-integration-tests.yml'
+  pull_request:
+    paths:
+      - 'integrations/dsh/**'
+      - '.github/workflows/dsh-integration-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/dsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install test dependency
+        run: npm install --no-audit --no-fund
+      - name: Run contract tests
+        run: npm test
+        env:
+          # 仓库未配置该 secret 时为空，线上握手/取数用例自动跳过
+          WIND_API_KEY: ${{ secrets.WIND_API_KEY }}

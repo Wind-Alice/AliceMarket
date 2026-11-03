@@ -1,0 +1,43 @@
+{
+  "$comment": "在 DSH 里推荐安装的 Wind skill：只挑带资产（references/ 或 scripts/）、属于方法论或流程的；数据取数一律走 MCP 原生工具。由 test/recommended-skills.test.mjs 校验。",
+  "recommended": [
+    {
+      "name": "dcf-model",
+      "reason": "DCF 估值建模流程 + scripts/validate_dcf.py 校验器，属于模型权重里没有的可执行方法论。"
+    },
+    {
+      "name": "backtest-expert",
+      "reason": "系统化回测方法论与 references/ 检查清单，附 scripts/evaluate_backtest.py 及自带测试。"
+    },
+    {
+      "name": "earnings-analysis",
+      "reason": "季报点评工作流（workflow / report-structure / best-practices），是报告产出的流程资产。"
+    },
+    {
+      "name": "market-environment-analysis",
+      "reason": "全球市场环境与 risk-on/risk-off 分析框架，含 references/ 与脚本。"
+    },
+    {
+      "name": "position-sizer",
+      "reason": "风险预算 / Kelly / ATR 仓位计算，带 references/ 与脚本，可直接算数。"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "wind-mcp-skill",
+      "reason": "它就是本 bundle 那 7 个 MCP 端点的 CLI 包装。DSH 已用原生工具直连，再装会产生路由竞争，并叠加一份会压制模型自身分析行为的硬路由守则。"
+    },
+    {
+      "name": "wind-find-finance-skill",
+      "reason": "meta 路由 skill，作用是引导用户去装别的 skill；DSH 里由 MCP 工具直接承担路由，留着只增加目录歧义。"
+    },
+    {
+      "name": "tushare-finance-skill",
+      "reason": "另一家数据源（需独立 token），与 Wind MCP 形成重叠取数路径，容易让模型选错数据源。"
+    },
+    {
+      "name": "wind-alice",
+      "reason": "Alice A2A 子 Agent 入口，需要独立 Key 与运行时，属于后续可选项，不纳入本次最小方案。"
+    }
+  ]
+}

@@ -253,7 +253,12 @@ wind-skills/
 - ✅ Claude Code / Claude Desktop
 - ✅ OpenClaw
 - ✅ Hermes Agent
+- ✅ DeepSeek Harness（DSH）— 数据取数走 MCP 原生工具，见 [`integrations/dsh`](./integrations/dsh)
 - 🔄 其他遵循 [Anthropic Skill 规范](https://github.com/vercel-labs/skills) 的 agent 理论上可用
+
+> **DSH 用户注意**：DSH 的插件/bundle 机制要求包内有 `package.json` + `dsh.bundle.patch`，本仓库是
+> Skill 集合仓库，**不能直接作为 DSH 插件安装**。请按 [`integrations/dsh/README.md`](./integrations/dsh/README.md)
+> 安装其中的 profile bundle，把 Wind 的 7 个 MCP 服务挂成 DSH 原生工具。
 
 ---
 

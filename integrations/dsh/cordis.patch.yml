@@ -1,0 +1,84 @@
+# Wind（万得）金融数据 MCP —— DeepSeek Harness profile bundle
+#
+# 这是一个"纯配置" bundle：只插入 DSH 自带的 @deepseek-ai/dsh-mcp-client 行，
+# 把 Wind 的 7 个远端 MCP 服务挂成 DSH 原生工具 mcp__wind_<域>__<tool>。
+# 端点取自本仓库 skills/wind-mcp-skill/scripts/cli.mjs 的 SERVERS 表（由 test/bundle.test.mjs 校验一致性）。
+#
+# 认证：Authorization: Bearer <WIND_API_KEY>，与 wind-mcp-skill 的 CLI 完全一致。
+# 下面的 !!js 表达式在行激活时求值，顺序为：环境变量 WIND_API_KEY → ~/.wind-aifinmarket/config。
+# 两者都缺时退化为 "Bearer "，服务器返回 401，工具不注册，但 harness 照常启动。
+#
+# 按需裁剪：不需要的域，整段删掉即可（每个域一行，相互独立）。
+# 推荐最小方案：只保留 wind-mcp-stock + wind-mcp-docs + wind-mcp-economic 三段。
+
+- insert:
+    - id: wind-mcp-stock
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: wind_stock
+        transport: streamable-http
+        url: https://mcp.wind.com.cn/vserver_stock_data/mcp/
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        headers: &wind-auth
+          Authorization: !!js '(() => { const fs = process.getBuiltinModule("node:fs"); const path = process.getBuiltinModule("node:path"); const os = process.getBuiltinModule("node:os"); let key = String(process.env.WIND_API_KEY || "").trim(); if (!key) { try { const m = fs.readFileSync(path.join(os.homedir(), ".wind-aifinmarket", "config"), "utf8").match(/WIND_API_KEY\s*=\s*(\S+)/); if (m) key = m[1].trim(); } catch (e) {} } return "Bearer " + key; })()'
+
+    - id: wind-mcp-fund
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: wind_fund
+        transport: streamable-http
+        url: https://mcp.wind.com.cn/vserver_fund_data/mcp/
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        headers: *wind-auth
+
+    - id: wind-mcp-index
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: wind_index
+        transport: streamable-http
+        url: https://mcp.wind.com.cn/vserver_index_data/mcp/
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        headers: *wind-auth
+
+    - id: wind-mcp-bond
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: wind_bond
+        transport: streamable-http
+        url: https://mcp.wind.com.cn/vserver_bond_data/mcp/
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        headers: *wind-auth
+
+    - id: wind-mcp-docs
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: wind_docs
+        transport: streamable-http
+        url: https://mcp.wind.com.cn/vserver_financial_docs/mcp/
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        headers: *wind-auth
+
+    - id: wind-mcp-economic
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: wind_economic
+        transport: streamable-http
+        url: https://mcp.wind.com.cn/vserver_economic_data/mcp/
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        headers: *wind-auth
+
+    - id: wind-mcp-analytics
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: wind_analytics
+        transport: streamable-http
+        url: https://mcp.wind.com.cn/vserver_analytics_data/mcp/
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+        headers: *wind-auth
